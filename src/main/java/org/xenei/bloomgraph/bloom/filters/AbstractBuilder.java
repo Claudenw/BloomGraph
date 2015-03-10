@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.BitSet;
 
 import org.xenei.bloomgraph.SerializableNode;
+import org.xenei.bloomgraph.bloom.filters.MurmurHash;
 import org.xenei.bloomgraph.bloom.filters.AbstractBloomFilter.FilterConfig;
 
 import com.hp.hpl.jena.graph.Node;
@@ -120,13 +121,21 @@ public abstract class AbstractBuilder<T extends AbstractBloomFilter> {
 	 * @throws IOException
 	 */
 	private void update(BitSet bitSet, Node node) throws IOException {
+		// as noted in org.apache.cassandra.utils.BloomFilter
+		// Murmur is faster than an SHA-based approach and provides as-good
+		// collision
+		// resistance. The combinatorial generation approach described in
+		// http://www.eecs.harvard.edu/~kirsch/pubs/bbbf/esa06.pdf
+		// does prove to work in actual tests, and is obviously faster
+		// than performing further iterations of murmur.
 		SerializableNode serNode = new SerializableNode(node);
 		ByteBuffer bb = serNode.getByteBuffer();
-		long[] lBuf = new long[2];
+		long[] hash = new long[2];
+		MurmurHash.hash3_x64_128(bb, 0, bb.limit(), 0L, hash);
 		for (int i = 0; i < config.getNumberOfHashFunctions(); i++) {
-			MurmurHash.hash3_x64_128(bb, 0, bb.limit(), i, lBuf);
 			bitSet.set(Long.valueOf(
-					Math.abs(lBuf[0] % config.getNumberOfBits())).intValue());
+					Math.abs((hash[0] + (long) i * hash[1])
+							% config.getNumberOfBits())).intValue());
 		}
 	}
 
