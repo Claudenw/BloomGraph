@@ -1,0 +1,22 @@
+describe select data from (select data, bloom from Page_1 where hamming>=40 and log>=71.25) x where bloommatch( 'foo', bloom );
+describe select data from Page_1 where hamming>=40 and log>=71.25 and bloommatch( 'foo', bloom );
+
+select distinct hamming, log from bloom.Page_1;
+
+select hamming%10 ham, log, count(*) from bloom.Page_1 group by hamming%10, log;
+select hamming%10 ham, count(*) from bloom.Page_1 group by hamming%10;
+
+explain partitions  select data from test_1 where hamming>=38 and log>=71.25 and bloommatch( 'foo', bloom );
+
+
+select hamming, count(*) from bloom.Page_1 group by hamming;
+
+
+create table geom 
+(idx INT primary key, hamming INT, log DOUBLE , p POINT not null, bloom blob,
+spatial index(p)
+) ENGINE MyISAM;
+
+insert into geom select idx, hamming, log, PointFromText( concat( 'POINT(',hamming,' ',log,')' ) ), bloom from Page_1;
+
+select hash, n from (select hash, count(*) n from Page_1 group by hash) x where n>1;
