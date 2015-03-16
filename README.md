@@ -1,5 +1,5 @@
 # BloomGraph
-A Jena graph implementations that uses [bloom filters|http://en.wikipedia.org/wiki/Bloom_filter] to locate triples.
+A Jena graph implementations that uses <a href='http://en.wikipedia.org/wiki/Bloom_filter'>bloom filters</a> to locate triples.
 
 # Notes
 
@@ -11,7 +11,7 @@ There are 2 implementations of the bloom filter graph included here; a memory ba
 
 # Design Goals
 
-This is an implementation of [Jena Graph|http://jena.apache.org/documentation/javadoc/jena/com/hp/hpl/jena/graph/Graph.html] is intended to explore the possibility of using Bloom Filters to search a triple store.
+This is an implementation of <a href='http://jena.apache.org/documentation/javadoc/jena/com/hp/hpl/jena/graph/Graph.html'>Jena Graph</a> is intended to explore the possibility of using Bloom Filters to search a triple store.
 
 Triples are stored in "pages" of 10K entries.  The page has a bloom filter that can store 10000 triples and has a 1 in 100K collision rate.
 
@@ -27,7 +27,7 @@ The database implementation utilizes 2 indexes on the page index table:
 
 * A primary key that comprises an auto increment field in the table.  This key is only used to identify the page table.
 
-* An index on the page bloom filter [hamming value|http://en.wikipedia.org/wiki/Hamming_weight] and an estimated base 2 log of the value of the bloom filter interpreted as a large unsigned integer value.
+* An index on the page bloom filter <a href='http://en.wikipedia.org/wiki/Hamming_weight'>hamming value</a> and an estimated base 2 log of the value of the bloom filter interpreted as a large unsigned integer value.
 
 The database implementation utilizes 3 indexes on the page tables: 
 
