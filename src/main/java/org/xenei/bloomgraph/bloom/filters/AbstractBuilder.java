@@ -125,7 +125,7 @@ public abstract class AbstractBuilder<T extends AbstractBloomFilter> {
 		// Murmur is faster than an SHA-based approach and provides as-good
 		// collision
 		// resistance. The combinatorial generation approach described in
-		// http://www.eecs.harvard.edu/~kirsch/pubs/bbbf/esa06.pdf
+		// https://www.eecs.harvard.edu/~michaelm/postscripts/tr-02-05.pdf
 		// does prove to work in actual tests, and is obviously faster
 		// than performing further iterations of murmur.
 		SerializableNode serNode = new SerializableNode(node);
