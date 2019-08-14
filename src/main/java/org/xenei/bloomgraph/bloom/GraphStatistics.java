@@ -17,7 +17,7 @@
  */
 package org.xenei.bloomgraph.bloom;
 
-import com.hp.hpl.jena.graph.GraphStatisticsHandler;
+import org.apache.jena.graph.GraphStatisticsHandler;
 
 public interface GraphStatistics extends GraphStatisticsHandler {
 	/**
@@ -27,11 +27,6 @@ public interface GraphStatistics extends GraphStatisticsHandler {
 	 */
 	public long size();
 
-	/**
-	 * Get the number of pages in the graph.
-	 * 
-	 * @return The number of pages.
-	 */
-	public int pages();
+	
 
 }

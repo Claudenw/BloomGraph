@@ -30,25 +30,26 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.junit.Before;
 import org.junit.Test;
 import org.xenei.bloomfilter.FilterConfig;
+import org.xenei.bloomfilter.collections.BloomCollection;
 import org.xenei.bloomfilter.collections.BloomList;
+import org.xenei.bloomfilter.collections.BloomTable;
 import org.xenei.bloomfilter.collections.CollectionStats;
 import org.xenei.bloomgraph.BloomTriple;
 
 
-public class BloomGraphTest {
+public class BloomGraphTest2 {
 
 	BloomGraph graph;
-	BloomList<BloomTriple> bloomCollection;
+	BloomCollection<BloomTriple> bloomCollection;
 
-	public BloomGraphTest() {
+	public BloomGraphTest2() {
 	}
 
 	
 
 	@Before
 	public void setup() throws Exception {
-		FilterConfig filterConfig = new FilterConfig(10, 10);
-		bloomCollection = new BloomList<BloomTriple>(filterConfig, BloomTriple.FUNC);
+		bloomCollection = new BloomTable<BloomTriple>(BloomTriple.FUNC);
 		graph = new BloomGraph( bloomCollection );
 	}
 

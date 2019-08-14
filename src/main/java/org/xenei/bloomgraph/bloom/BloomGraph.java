@@ -18,18 +18,25 @@
 package org.xenei.bloomgraph.bloom;
 
 import java.io.IOException;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
+import org.apache.jena.atlas.iterator.ActionCount;
+import org.apache.jena.graph.Capabilities;
+import org.apache.jena.graph.GraphStatisticsHandler;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.GraphBase;
+import org.apache.jena.riot.thrift.ThriftConvert;
+import org.apache.jena.riot.thrift.wire.RDF_Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.WrappedIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xenei.bloomgraph.bloom.page.AbstractPage;
-import org.xenei.bloomgraph.bloom.page.PageSearchItem;
+import org.xenei.bloomfilter.collections.BloomCollection;
+import org.xenei.bloomgraph.BloomTriple;
 
-import com.hp.hpl.jena.graph.Capabilities;
-import com.hp.hpl.jena.graph.GraphStatisticsHandler;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.graph.TripleMatch;
-import com.hp.hpl.jena.graph.impl.GraphBase;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+
 
 /**
  * A graph that implements searching via BloomFilters.
@@ -42,7 +49,7 @@ public class BloomGraph extends GraphBase {
 	 * the bloom IO implementation. IO can be implemented on a number of storage
 	 * platforms.
 	 */
-	private final BloomIO io;
+	private final BloomCollection<BloomTriple> bloomCollection;
 
 	/**
 	 * The statistics for the graph
@@ -52,61 +59,85 @@ public class BloomGraph extends GraphBase {
 	/**
 	 * Create a bloom graph on an IO implementation.
 	 * 
-	 * @param io
+	 * @param bloomCollection
 	 */
-	public BloomGraph(final BloomIO io) {
-		this.io = io;
-		this.statistics = io.getStatistics();
+	public BloomGraph(final BloomCollection<BloomTriple> bloomCollection) {
+		this.bloomCollection = bloomCollection;
+		this.statistics = new GraphStatistics() {
+
+			@Override
+			public long getStatistic(Node S, Node P, Node O) {
+				
+				BloomTriple bTriple = new BloomTriple( new Triple( S, P, O) );
+				if (bloomCollection.matches(bTriple.getProto()))
+				{
+					ActionCount<BloomTriple> ac = new ActionCount<BloomTriple>();
+					bloomCollection.getCandidates( bTriple.getProto() )
+					
+							.forEachRemaining( ac);
+					return ac.getCount();						
+				}
+				return 0;
+			}
+
+			@Override
+			public long size() {
+				return bloomCollection.size();
+			}};
+		
 	}
 
 	@Override
 	protected final GraphStatisticsHandler createStatisticsHandler() {
 		return statistics;
 	}
+	
+	private static class MatchTriple implements Predicate<RDF_Triple> {
+
+		RDF_Triple target;
+		public MatchTriple(RDF_Triple target)
+		{
+			this.target = target;
+		}
+		
+		@Override
+		public boolean test(RDF_Triple arg0) {
+			return ( target.S.isSetAny() || arg0.S.equals(target.S))
+					&&
+					( target.P.isSetAny() || arg0.P.equals(target.P))
+					&&
+					( target.O.isSetAny() || arg0.O.equals(target.O));
+		}
+		
+	}
 
 	@Override
-	protected final ExtendedIterator<Triple> graphBaseFind(final TripleMatch m) {
-		LOG.debug("Finding triple {}", m.asTriple());
-		try {
-			return io.find(new PageSearchItem(m.asTriple()));
-		} catch (final IOException e) {
-			throw new IllegalStateException(e.getMessage(), e);
-		}
+	protected final ExtendedIterator<Triple> graphBaseFind(final Triple t) {
+		
+		
+			BloomTriple bTriple = new BloomTriple( t );
+			if (bloomCollection.matches(bTriple.getProto()))
+			{
+				return bloomCollection.getCandidates( bTriple.getProto() )
+						.mapWith( bt -> bt.getTriple())
+						.filterKeep( new MatchTriple( bTriple.getTriple() ))
+						.mapWith( ThriftConvert::convert );
+			}
+			return WrappedIterator.emptyIterator();
 	}
 
 	@Override
 	public final void performAdd(final Triple t) {
 		LOG.debug("Adding triple {}", t);
-		final PageSearchItem candidate = new PageSearchItem(t);
-		try {
-			// check to see if it is already in the graph
-			final ExtendedIterator<Triple> iter = io.find(candidate);
-			try {
-				if (iter.hasNext()) {
-					LOG.debug("Triple already in graph");
-					return;
-				}
-			} finally {
-				iter.close();
-			}
-			io.add(candidate);
-
-		} catch (final IOException e) {
-			throw new IllegalStateException(e.getMessage(), e);
-		}
+		BloomTriple bTriple = new BloomTriple( t );
+		bloomCollection.add( bTriple.getProto(), bTriple);
 	}
 
 	@Override
 	public final void performDelete(final Triple t) {
 		LOG.debug("Deleting triple {}", t);
-		final PageSearchItem candidate = new PageSearchItem(t);
-
-		try {
-			io.delete(candidate);
-		} catch (final IOException e) {
-			throw new IllegalStateException(e.getMessage(), e);
-		}
-
+		BloomTriple bTriple = new BloomTriple( t );
+		bloomCollection.remove( bTriple.getProto(), bTriple);
 	}
 
 	@Override
@@ -132,7 +163,7 @@ public class BloomGraph extends GraphBase {
 
 		@Override
 		public boolean sizeAccurate() {
-			return false;
+			return true;
 		}
 
 		@Override
@@ -176,19 +207,5 @@ public class BloomGraph extends GraphBase {
 		}
 	}
 
-	// ///////////////////////
-	/**
-	 * A debug statement to display debug information for a specific page.
-	 * 
-	 * @param i
-	 *            the page to dump debug info for.
-	 */
-	public void debugPage(final int i) {
-		try {
-			final AbstractPage p = io.getPage(i);
-			p.debug(String.format("Graph page %s debug", i));
-		} catch (final IOException e) {
-			LOG.warn("Unable to retrieve page " + 1, e);
-		}
-	}
+	
 }
