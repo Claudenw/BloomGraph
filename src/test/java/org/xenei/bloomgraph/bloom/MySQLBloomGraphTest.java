@@ -34,7 +34,7 @@ import org.xenei.bloomgraph.bloom.sql.SQLCommands;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
-public class MySQLBloomGraphTest extends BloomGraphTest {
+public class MySQLBloomGraphTest extends AbstractBloomGraphTest {
 
 	public static final String URL = "jdbc:mysql://127.0.0.1:3306/bloomTest";
 	public static final String USR = "root";

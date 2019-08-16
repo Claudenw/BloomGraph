@@ -30,25 +30,26 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.junit.Before;
 import org.junit.Test;
 import org.xenei.bloomfilter.FilterConfig;
+import org.xenei.bloomfilter.collections.BloomCollection;
 import org.xenei.bloomfilter.collections.BloomList;
 import org.xenei.bloomfilter.collections.CollectionStats;
 import org.xenei.bloomgraph.BloomTriple;
 
 
-public class BloomGraphTest {
+public abstract class AbstractBloomGraphTest {
 
 	BloomGraph graph;
-	BloomList<BloomTriple> bloomCollection;
+	BloomCollection<BloomTriple> bloomCollection;
 
-	public BloomGraphTest() {
+	public AbstractBloomGraphTest() {
 	}
 
-	
+	protected abstract BloomCollection<BloomTriple> makeCollection();
 
 	@Before
 	public void setup() throws Exception {
-		FilterConfig filterConfig = new FilterConfig(10, 10);
-		bloomCollection = new BloomList<BloomTriple>(filterConfig, BloomTriple.FUNC);
+		bloomCollection = makeCollection();
+				
 		graph = new BloomGraph( bloomCollection );
 	}
 
@@ -131,6 +132,7 @@ public class BloomGraphTest {
 		graph.add(t3);
 
 		graph.delete(t2);
+		
 		assertEquals( 1, bloomCollection.getStats().getDeleteCount());
 		assertEquals( 3, bloomCollection.getStats().getInsertCount());
 		assertEquals( 4, bloomCollection.getStats().getTxnCount());
