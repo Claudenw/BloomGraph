@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.jena.graph.Node;
@@ -29,27 +30,24 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.junit.Before;
 import org.junit.Test;
-import org.xenei.bloomfilter.FilterConfig;
-import org.xenei.bloomfilter.collections.BloomCollection;
-import org.xenei.bloomfilter.collections.BloomList;
-import org.xenei.bloomfilter.collections.CollectionStats;
+import org.xenei.bloom.multidimensional.Container;
 import org.xenei.bloomgraph.BloomTriple;
 
 
 public abstract class AbstractBloomGraphTest {
 
 	BloomGraph graph;
-	BloomCollection<BloomTriple> bloomCollection;
+	Container<BloomTriple> bloomCollection;
 
 	public AbstractBloomGraphTest() {
 	}
 
-	protected abstract BloomCollection<BloomTriple> makeCollection();
+	protected abstract Container<BloomTriple> makeCollection() throws IOException;
 
 	@Before
 	public void setup() throws Exception {
 		bloomCollection = makeCollection();
-				
+
 		graph = new BloomGraph( bloomCollection );
 	}
 
@@ -126,17 +124,17 @@ public abstract class AbstractBloomGraphTest {
 		final Triple t2 = new Triple(s2, p2, o2);
 		final Triple t3 = new Triple(s2, p1, o1);
 
-		CollectionStats cs = bloomCollection.getStats();
+		//CollectionStats cs = bloomCollection.getStats();
 		graph.add(t1);
 		graph.add(t2);
 		graph.add(t3);
 
 		graph.delete(t2);
-		
-		assertEquals( 1, bloomCollection.getStats().getDeleteCount());
-		assertEquals( 3, bloomCollection.getStats().getInsertCount());
-		assertEquals( 4, bloomCollection.getStats().getTxnCount());
-		assertEquals( 2, bloomCollection.getStats().getFilterCount());
+
+//		assertEquals( 1, bloomCollection.getStats().getDeleteCount());
+//		assertEquals( 3, bloomCollection.getStats().getInsertCount());
+//		assertEquals( 4, bloomCollection.getStats().getTxnCount());
+//		assertEquals( 2, bloomCollection.getStats().getFilterCount());
 
 		ExtendedIterator<Triple> iter = graph.find(t1);
 		assertTrue(iter.hasNext());

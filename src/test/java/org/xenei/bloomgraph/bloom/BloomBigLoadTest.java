@@ -17,25 +17,30 @@
  */
 package org.xenei.bloomgraph.bloom;
 
-import org.apache.log4j.Level;
-import org.xenei.bloomgraph.bloom.mem.MemIO;
-
-import com.hp.hpl.jena.graph.Graph;
+import org.apache.commons.collections4.bloomfilter.BloomFilter.Shape;
+import org.apache.commons.collections4.bloomfilter.hasher.Murmur128;
+import org.apache.jena.graph.Graph;
+import org.xenei.bloom.multidimensional.storage.InMemory;
+import org.xenei.bloom.multidimensional.Container;
+import org.xenei.bloom.multidimensional.Container.Index;
+import org.xenei.bloom.multidimensional.Container.Storage;
+import org.xenei.bloom.multidimensional.ContainerImpl;
+import org.xenei.bloom.multidimensional.index.FlatBloofi;
+import org.xenei.bloomgraph.BloomTriple;
 
 public class BloomBigLoadTest extends AbstractBigLoadTest {
 
 	public BloomBigLoadTest() {
-		// TODO Auto-generated constructor stub
-	}
-
-	protected BloomIO getBloomIO() throws Exception {
-		LoggingConfig.setLogger("org.xenei.bloomgraph.bloom", Level.INFO);
-		return new MemIO();
+		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
 	}
 
 	@Override
 	protected final Graph getGraph() throws Exception {
-		return new BloomGraph(getBloomIO());
+		Shape shape = new Shape( Murmur128.NAME, 3, 1.0/30000000 );
+		Storage<BloomTriple> storage = new InMemory<BloomTriple>();
+		Index index = new FlatBloofi( shape );
+		Container<BloomTriple> container = new ContainerImpl<BloomTriple>( shape, storage, index );
+		return new BloomGraph( container );
 	}
 
 	public static void main(final String[] args) throws Exception {

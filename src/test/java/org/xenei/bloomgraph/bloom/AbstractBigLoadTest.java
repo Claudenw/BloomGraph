@@ -23,15 +23,13 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Level;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xenei.geoname.GeoName;
-
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.graph.Triple;
 
 public abstract class AbstractBigLoadTest {
 
@@ -47,9 +45,9 @@ public abstract class AbstractBigLoadTest {
 	abstract protected Graph getGraph() throws Exception;
 
 	public void setup() throws Exception {
-		LoggingConfig.setConsole(Level.DEBUG);
-		LoggingConfig.setRootLogger(Level.DEBUG);
-		LoggingConfig.setLogger("com.hp.hpl.jena", Level.INFO);
+//		LoggingConfig.setConsole(Level.DEBUG);
+//		LoggingConfig.setRootLogger(Level.DEBUG);
+//		LoggingConfig.setLogger("com.hp.hpl.jena", Level.INFO);
 		graph = getGraph();
 	}
 
@@ -81,7 +79,7 @@ public abstract class AbstractBigLoadTest {
 
 	public void loadData() throws IOException {
 		final URL inputFile = AbstractBigLoadTest.class
-				.getResource("allCountries.txt");
+				.getClassLoader().getResource("allCountries.txt");
 		final String uriPattern = "urn:geoname:%s";
 		BufferedReader br = null;
 		try {

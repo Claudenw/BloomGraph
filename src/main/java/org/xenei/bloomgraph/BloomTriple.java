@@ -3,63 +3,65 @@ package org.xenei.bloomgraph;
 import java.lang.ref.SoftReference;
 import java.util.function.Function;
 
+import org.apache.commons.collections4.bloomfilter.Hasher;
+import org.apache.commons.collections4.bloomfilter.hasher.DynamicHasher;
+import org.apache.commons.collections4.bloomfilter.hasher.Murmur128;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.thrift.ThriftConvert;
 import org.apache.jena.riot.thrift.wire.RDF_Triple;
-import org.xenei.bloomfilter.ProtoBloomFilter;
-import org.xenei.bloomfilter.ProtoBloomFilterBuilder;
+
 
 public class BloomTriple {
-	
-	public static Function<BloomTriple,ProtoBloomFilter> FUNC =
-			new Function<BloomTriple,ProtoBloomFilter>(){
+
+	public static Function<BloomTriple,Hasher> FUNC =
+			new Function<BloomTriple,Hasher>(){
 
 				@Override
-				public ProtoBloomFilter apply(BloomTriple bt) {
-					return bt.getProto();
+				public Hasher apply(BloomTriple bt) {
+					return bt.getHasher();
 				}};
-				
+
 	private final RDF_Triple triple;
-	private transient SoftReference<ProtoBloomFilter> proto;
+	private transient SoftReference<Hasher> hasher;
 	private transient Integer hashCode;
 
 	public BloomTriple(Triple t)
 	{
 		triple = ThriftConvert.convert(t, false );
-		proto = null;
+		hasher = null;
 	}
 
 	public BloomTriple(RDF_Triple t)
 	{
 		triple = t;
-		proto = null;
+		hasher = null;
 	}
-	
+
 	public RDF_Triple getTriple() {
 		return triple;
 	}
 
-	public ProtoBloomFilter getProto() {
-		if (proto == null || proto.get() == null)
+	public Hasher getHasher() {
+		if (hasher == null || hasher.get() == null)
 		{
-			ProtoBloomFilterBuilder builder = new ProtoBloomFilterBuilder();
+		    Hasher.Builder builder = DynamicHasher.Factory.DEFAULT.useFunction( Murmur128.NAME );
 			if (! triple.S.isSetAny())
 			{
-				builder.update( triple.S.toString() );
+				builder.with( triple.S.toString() );
 			}
 			if ( ! triple.P.isSetAny() )
 			{
-				builder.update( triple.P.toString());
+				builder.with( triple.P.toString());
 			}
 			if ( ! triple.O.isSetAny() )
 			{
-				builder.update( triple.O.toString());
+				builder.with( triple.O.toString());
 			}
-			proto = new SoftReference<ProtoBloomFilter>(builder.build());
+			hasher = new SoftReference<Hasher>(builder.build());
 		}
-		return proto.get();
+		return hasher.get();
 	}
-	
+
 	@Override
 	public boolean equals( Object o ) {
 		if ( o instanceof BloomTriple )
@@ -68,7 +70,7 @@ public class BloomTriple {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		if (hashCode == null)
@@ -77,5 +79,5 @@ public class BloomTriple {
 		}
 		return hashCode;
 	}
-	
+
 }
