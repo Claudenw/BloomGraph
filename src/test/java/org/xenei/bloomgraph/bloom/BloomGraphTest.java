@@ -11,7 +11,7 @@ import org.xenei.bloom.multidimensional.index.FlatBloofi;
 import org.xenei.bloom.multidimensional.storage.InMemory;
 import org.xenei.bloomgraph.BloomTriple;
 
-public class BloomListGraphTest extends AbstractBloomGraphTest {
+public class BloomGraphTest extends AbstractBloomGraphTest {
 
 	@Override
 	protected Container<BloomTriple> makeCollection() {

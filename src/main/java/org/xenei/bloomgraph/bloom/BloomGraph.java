@@ -105,7 +105,8 @@ public class BloomGraph extends GraphBase {
     @Override
     protected final ExtendedIterator<Triple> graphBaseFind(final Triple t) {
         BloomTriple bTriple = new BloomTriple( t );
-        return WrappedIterator.create( container.search(bTriple.getHasher()).map( BloomTriple::getTriple).filter( new MatchTriple( bTriple.getTriple() ))
+        MatchTriple predicate = new MatchTriple( bTriple.getTriple() );
+        return WrappedIterator.create( container.search(bTriple.getHasher()).map( BloomTriple::getTriple).filter( predicate )
                 .map( ThriftConvert::convert ).iterator() );
     }
 

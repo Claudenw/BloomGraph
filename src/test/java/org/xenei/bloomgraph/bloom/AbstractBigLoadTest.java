@@ -21,6 +21,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.graph.Graph;
@@ -35,6 +39,8 @@ public abstract class AbstractBigLoadTest {
 
 	Graph graph;
 
+	List<GeoName> sample;
+
 	private static final Logger LOG = LoggerFactory
 			.getLogger(AbstractBigLoadTest.class);
 
@@ -45,129 +51,115 @@ public abstract class AbstractBigLoadTest {
 	abstract protected Graph getGraph() throws Exception;
 
 	public void setup() throws Exception {
-//		LoggingConfig.setConsole(Level.DEBUG);
-//		LoggingConfig.setRootLogger(Level.DEBUG);
-//		LoggingConfig.setLogger("com.hp.hpl.jena", Level.INFO);
 		graph = getGraph();
 	}
 
-	/*
-	 * geonameid : integer id of record in geonames database name : name of
-	 * geographical point (utf8) varchar(200) asciiname : name of geographical
-	 * point in plain ascii characters, varchar(200) alternatenames :
-	 * alternatenames, comma separated, ascii names automatically
-	 * transliterated, convenience attribute from alternatename table,
-	 * varchar(10000) latitude : latitude in decimal degrees (wgs84) longitude :
-	 * longitude in decimal degrees (wgs84) feature class : see
-	 * http://www.geonames.org/export/codes.html, char(1) feature code : see
-	 * http://www.geonames.org/export/codes.html, varchar(10) country code :
-	 * ISO-3166 2-letter country code, 2 characters cc2 : alternate country
-	 * codes, comma separated, ISO-3166 2-letter country code, 60 characters
-	 * admin1 code : fipscode (subject to change to iso code), see exceptions
-	 * below, see file admin1Codes.txt for display names of this code;
-	 * varchar(20) admin2 code : code for the second administrative division, a
-	 * county in the US, see file admin2Codes.txt; varchar(80) admin3 code :
-	 * code for third level administrative division, varchar(20) admin4 code :
-	 * code for fourth level administrative division, varchar(20) population :
-	 * bigint (8 byte int) elevation : in meters, integer dem : digital
-	 * elevation model, srtm3 or gtopo30, average elevation of 3''x3'' (ca
-	 * 90mx90m) or 30''x30'' (ca 900mx900m) area in meters, integer. srtm
-	 * processed by cgiar/ciat. timezone : the timezone id (see file
-	 * timeZone.txt) varchar(40) modification date : date of last modification
-	 * in yyyy-MM-dd format
-	 */
-
-	public void loadData() throws IOException {
+	public void loadData(int records) throws IOException {
 		final URL inputFile = AbstractBigLoadTest.class
 				.getClassLoader().getResource("allCountries.txt");
-		final String uriPattern = "urn:geoname:%s";
 		BufferedReader br = null;
+		sample = new ArrayList<GeoName>();
 		try {
 			br = new BufferedReader(new InputStreamReader(
 					inputFile.openStream()));
 
-			for (int i = 0; i < 8000; i++) {
+			for (int i = 0; i < records; i++) {
 
 				final GeoName gn = GeoName.parse(br.readLine());
-				final Node subject = NodeFactory.createURI(String.format(
-						uriPattern, gn.geonameid));
+				if ( i % 100 == 0)
+				{
+				    sample.add( gn );
+				}
 
-				LOG.info("processing {} {} ", gn.geonameid, i);
-				Node predicate = NodeFactory.createURI(String.format(
-						uriPattern, "asciiname"));
-				Node object = NodeFactory.createLiteral(gn.asciiname);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"latitude"));
-				object = NodeFactory.createLiteral(gn.latitude);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"longitude"));
-				object = NodeFactory.createLiteral(gn.longitude);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"feature_class"));
-				object = NodeFactory.createLiteral(gn.feature_class);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"feature_code"));
-				object = NodeFactory.createLiteral(gn.feature_code);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"country_code"));
-				object = NodeFactory.createLiteral(gn.country_code);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"admin1_code"));
-				object = NodeFactory.createLiteral(gn.admin1_code);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"admin2_code"));
-				object = NodeFactory.createLiteral(gn.admin2_code);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"admin3_code"));
-				object = NodeFactory.createLiteral(gn.admin3_code);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"admin4_code"));
-				object = NodeFactory.createLiteral(gn.admin4_code);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"population"));
-				object = NodeFactory.createLiteral(gn.population);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"elevation"));
-				object = NodeFactory.createLiteral(gn.elevation);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"dem"));
-				object = NodeFactory.createLiteral(gn.dem);
-				graph.add(new Triple(subject, predicate, object));
-
-				predicate = NodeFactory.createURI(String.format(uriPattern,
-						"timezone"));
-				object = NodeFactory.createLiteral(gn.timezone);
-				graph.add(new Triple(subject, predicate, object));
-
+				Map<String,Triple> data = parse( gn );
+				data.values().stream().forEach( graph::add );
 			}
 
 		} finally {
 			IOUtils.closeQuietly(br);
 		}
 
+	}
+
+	public static Map<String,Triple> parse(GeoName gn)
+	{
+	    final String uriPattern = "urn:geoname:%s";
+	    final Node subject = NodeFactory.createURI(String.format(
+                uriPattern, gn.geonameid));
+	    Map<String,Triple> data = new HashMap<String,Triple>();
+
+        LOG.info("processing {} ", gn.geonameid);
+        Node predicate = NodeFactory.createURI(String.format(
+                uriPattern, "asciiname"));
+        Node object = NodeFactory.createLiteral(gn.asciiname);
+        data.put( "asciiname", new Triple(subject, predicate, object));
+
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "latitude"));
+        object = NodeFactory.createLiteral(gn.latitude);
+        data.put( "latitude", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "longitude"));
+        object = NodeFactory.createLiteral(gn.longitude);
+        data.put( "longitude", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "feature_class"));
+        object = NodeFactory.createLiteral(gn.feature_class);
+        data.put( "feature_class", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "feature_code"));
+        object = NodeFactory.createLiteral(gn.feature_code);
+        data.put( "feature_code", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "country_code"));
+        object = NodeFactory.createLiteral(gn.country_code);
+        data.put( "country_code", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "admin1_code"));
+        object = NodeFactory.createLiteral(gn.admin1_code);
+        data.put( "admin1_code", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "admin2_code"));
+        object = NodeFactory.createLiteral(gn.admin2_code);
+        data.put( "admin2_code", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "admin3_code"));
+        object = NodeFactory.createLiteral(gn.admin3_code);
+        data.put( "admin3_code", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "admin4_code"));
+        object = NodeFactory.createLiteral(gn.admin4_code);
+        data.put( "admin4_code", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "population"));
+        object = NodeFactory.createLiteral(gn.population);
+        data.put( "population", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "elevation"));
+        object = NodeFactory.createLiteral(gn.elevation);
+        data.put( "elevation", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "dem"));
+        object = NodeFactory.createLiteral(gn.dem);
+        data.put( "dem", new Triple(subject, predicate, object));
+
+        predicate = NodeFactory.createURI(String.format(uriPattern,
+                "timezone"));
+        object = NodeFactory.createLiteral(gn.timezone);
+        data.put( "timezone", new Triple(subject, predicate, object));
+
+        return data;
 	}
 }

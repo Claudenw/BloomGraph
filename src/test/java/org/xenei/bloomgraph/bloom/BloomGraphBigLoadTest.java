@@ -17,9 +17,17 @@
  */
 package org.xenei.bloomgraph.bloom;
 
+import static org.junit.Assert.assertTrue;
+
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.apache.commons.collections4.bloomfilter.BloomFilter.Shape;
 import org.apache.commons.collections4.bloomfilter.hasher.Murmur128;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.junit.Test;
 import org.xenei.bloom.multidimensional.storage.InMemory;
 import org.xenei.bloom.multidimensional.Container;
 import org.xenei.bloom.multidimensional.Container.Index;
@@ -27,10 +35,11 @@ import org.xenei.bloom.multidimensional.Container.Storage;
 import org.xenei.bloom.multidimensional.ContainerImpl;
 import org.xenei.bloom.multidimensional.index.FlatBloofi;
 import org.xenei.bloomgraph.BloomTriple;
+import org.xenei.geoname.GeoName;
 
-public class BloomBigLoadTest extends AbstractBigLoadTest {
+public class BloomGraphBigLoadTest extends AbstractBigLoadTest {
 
-	public BloomBigLoadTest() {
+	public BloomGraphBigLoadTest() {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
 	}
 
@@ -43,9 +52,20 @@ public class BloomBigLoadTest extends AbstractBigLoadTest {
 		return new BloomGraph( container );
 	}
 
-	public static void main(final String[] args) throws Exception {
-		final BloomBigLoadTest test = new BloomBigLoadTest();
-		test.setup();
-		test.loadData();
+	@Test
+	public void x() throws Exception {
+		setup();
+		loadData( 80 );
+		for (GeoName g : sample )
+		{
+		    Map<String,Triple> data = parse( g );
+		    for (Triple triple :data.values()) {
+		        assertTrue( "Missing "+triple, graph.contains( triple) );
+		        assertTrue( "Find object failed "+triple, graph.find( triple.getSubject(), triple.getPredicate(), Node.ANY).hasNext());
+                assertTrue( "Find predicate failed "+triple, graph.find( triple.getSubject(), Node.ANY, triple.getObject()).hasNext());
+		    }
+		}
+
+
 	}
 }

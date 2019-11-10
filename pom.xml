@@ -41,8 +41,15 @@
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>apache-jena-libs</artifactId>
-            <version>3.13.0-SNAPSHOT</version>
+            <version>3.13.1</version>
             <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-core</artifactId>
+            <version>3.13.1</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -74,6 +81,11 @@
         	<groupId>MultidimensionalBloom</groupId>
         	<artifactId>MultidimensionalBloom</artifactId>
         	<version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+        	<groupId>org.xenei</groupId>
+        	<artifactId>junit-contracts</artifactId>
+        	<version>0.2.0</version>
         </dependency>
   </dependencies>
   <groupId>org.xenei.bloomgraph</groupId>
