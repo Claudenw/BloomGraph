@@ -1,6 +1,6 @@
-/target/
+target/
 .classpath
 .project
 .settings/
-src/test/java/org/xenei/bloomgraph/bloom/allCountries.txt
+src/test/resources/allCountries.txt
 src/test/resources/testqueries.txt
