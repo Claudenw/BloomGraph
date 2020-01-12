@@ -67,7 +67,8 @@ public class BloomGraph extends GraphBase {
 
                 BloomTriple bTriple = new BloomTriple( new Triple( S, P, O) );
                 ActionCount<BloomTriple> ac = new ActionCount<BloomTriple>();
-                container.search(bTriple.getHasher()).forEach( ac );
+                container.search(bTriple.getHasher())
+                .forEachRemaining( ac );
                 return ac.getCount();
             }
 
@@ -106,8 +107,9 @@ public class BloomGraph extends GraphBase {
     protected final ExtendedIterator<Triple> graphBaseFind(final Triple t) {
         BloomTriple bTriple = new BloomTriple( t );
         MatchTriple predicate = new MatchTriple( bTriple.getTriple() );
-        return WrappedIterator.create( container.search(bTriple.getHasher()).map( BloomTriple::getTriple).filter( predicate )
-                .map( ThriftConvert::convert ).iterator() );
+        return WrappedIterator.create( container.search(bTriple.getHasher()))
+                .mapWith( bt -> bt.getTriple() ).filterKeep( predicate )
+                .mapWith( ThriftConvert::convert );
     }
 
     @Override
