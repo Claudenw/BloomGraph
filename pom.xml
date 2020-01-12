@@ -87,6 +87,11 @@
         	<artifactId>junit-contracts</artifactId>
         	<version>0.2.0</version>
         </dependency>
+        <dependency>
+        	<groupId>commons-codec</groupId>
+        	<artifactId>commons-codec</artifactId>
+        	<version>1.14</version>
+        </dependency>
   </dependencies>
   <groupId>org.xenei.bloomgraph</groupId>
   <name>Bloom Graph</name>
