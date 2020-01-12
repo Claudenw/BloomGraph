@@ -20,13 +20,13 @@ package org.xenei.bloomgraph.bloom;
 import org.apache.jena.graph.GraphStatisticsHandler;
 
 public interface GraphStatistics extends GraphStatisticsHandler {
-	/**
-	 * get the number of triples in the graph.
-	 * 
-	 * @return the number of triples
-	 */
-	public long size();
+    /**
+     * get the number of triples in the graph.
+     *
+     * @return the number of triples
+     */
+    public long size();
 
-	
+
 
 }

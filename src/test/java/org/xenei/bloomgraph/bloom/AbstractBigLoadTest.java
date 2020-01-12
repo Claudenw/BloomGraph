@@ -37,56 +37,56 @@ import org.xenei.geoname.GeoName;
 
 public abstract class AbstractBigLoadTest {
 
-	Graph graph;
+    Graph graph;
 
-	List<GeoName> sample;
+    List<GeoName> sample;
 
-	private static final Logger LOG = LoggerFactory
-			.getLogger(AbstractBigLoadTest.class);
+    private static final Logger LOG = LoggerFactory
+            .getLogger(AbstractBigLoadTest.class);
 
-	public AbstractBigLoadTest() {
-		// TODO Auto-generated constructor stub
-	}
+    public AbstractBigLoadTest() {
+        // TODO Auto-generated constructor stub
+    }
 
-	abstract protected Graph getGraph() throws Exception;
+    abstract protected Graph getGraph() throws Exception;
 
-	public void setup() throws Exception {
-		graph = getGraph();
-	}
+    public void setup() throws Exception {
+        graph = getGraph();
+    }
 
-	public void loadData(int records) throws IOException {
-		final URL inputFile = AbstractBigLoadTest.class
-				.getClassLoader().getResource("allCountries.txt");
-		BufferedReader br = null;
-		sample = new ArrayList<GeoName>();
-		try {
-			br = new BufferedReader(new InputStreamReader(
-					inputFile.openStream()));
+    public void loadData(int records) throws IOException {
+        final URL inputFile = AbstractBigLoadTest.class
+                .getClassLoader().getResource("allCountries.txt");
+        BufferedReader br = null;
+        sample = new ArrayList<GeoName>();
+        try {
+            br = new BufferedReader(new InputStreamReader(
+                    inputFile.openStream()));
 
-			for (int i = 0; i < records; i++) {
+            for (int i = 0; i < records; i++) {
 
-				final GeoName gn = GeoName.parse(br.readLine());
-				if ( i % 100 == 0)
-				{
-				    sample.add( gn );
-				}
+                final GeoName gn = GeoName.parse(br.readLine());
+                if ( i % 100 == 0)
+                {
+                    sample.add( gn );
+                }
 
-				Map<String,Triple> data = parse( gn );
-				data.values().stream().forEach( graph::add );
-			}
+                Map<String,Triple> data = parse( gn );
+                data.values().stream().forEach( graph::add );
+            }
 
-		} finally {
-			IOUtils.closeQuietly(br);
-		}
+        } finally {
+            IOUtils.closeQuietly(br);
+        }
 
-	}
+    }
 
-	public static Map<String,Triple> parse(GeoName gn)
-	{
-	    final String uriPattern = "urn:geoname:%s";
-	    final Node subject = NodeFactory.createURI(String.format(
+    public static Map<String,Triple> parse(GeoName gn)
+    {
+        final String uriPattern = "urn:geoname:%s";
+        final Node subject = NodeFactory.createURI(String.format(
                 uriPattern, gn.geonameid));
-	    Map<String,Triple> data = new HashMap<String,Triple>();
+        Map<String,Triple> data = new HashMap<String,Triple>();
 
         LOG.info("processing {} ", gn.geonameid);
         Node predicate = NodeFactory.createURI(String.format(
@@ -161,5 +161,5 @@ public abstract class AbstractBigLoadTest {
         data.put( "timezone", new Triple(subject, predicate, object));
 
         return data;
-	}
+    }
 }
